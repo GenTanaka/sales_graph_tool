@@ -3,34 +3,60 @@ const BLUE_COLOR = "rgb(83, 131, 236)";
 const RED_COLOR = 'rgb(216, 81, 64)'
 
 function controller() {
-    const PAYMENT_PERIOD = Number(document.querySelector('#payment-period').value);
-    const MAKE_NUM = Number(document.querySelector('#make-num').value);
+    let payment_period = Number(document.querySelector('#payment-period').value);
+    let make_num = Number(toHalfNumber(document.querySelector('#make-num').value));
+
+    console.log(make_num)
+    if (payment_period == "Nan" || make_num == "Nan") {
+        return
+    }
 
     if (my_chart) {
         my_chart.destroy();
         deleteTableRow();
     }
 
-    let sales_data = makeSalesList(MAKE_NUM);
-    let payment_data = makePaymentList(PAYMENT_PERIOD);
+    let sales_data = makeSalesList(make_num);
+    let payment_data = makePaymentList(payment_period);
 
     my_chart = makeChart(sales_data.slice(0,7), payment_data.slice(0,7));
     makeTable(sales_data, payment_data);
 
-    let id_cross_point = document.querySelector("#cross-point")
-    id_cross_point.innerHTML = crossPoint(sales_data, payment_data);
-    id_cross_point.style.color = BLUE_COLOR;
+    let id_cross_point = document.querySelector("#cross-point");
+    let cross_point = crossPoint(sales_data, payment_data)
+    id_cross_point.innerHTML = cross_point ? cross_point : " - ";
+    id_cross_point.style.color = cross_point ? BLUE_COLOR : "black";
     
     let id_half_year = document.querySelector("#half-year");
-    id_half_year.innerHTML = (Math.round((sales_data[6] - payment_data[6]) / 1000) / 10);
-    id_half_year.style.color = BLUE_COLOR;
+    let half_year = (Math.round((sales_data[6] - payment_data[6]) / 1000) / 10)
+    id_half_year.innerHTML = half_year;
+    id_half_year.style.color = half_year > 0 ? BLUE_COLOR : RED_COLOR;
 
     let id_first_year = document.querySelector("#first-year");
-    id_first_year.innerHTML = (Math.round((sales_data[12] - payment_data[12]) / 1000) / 10);
-    id_first_year.style.color = BLUE_COLOR;
+    let first_year = (Math.round((sales_data[12] - payment_data[12]) / 1000) / 10);
+    id_first_year.innerHTML = first_year;
+    id_first_year.style.color = first_year > 0 ?  BLUE_COLOR : RED_COLOR;
 
     let id_fixed = document.querySelector("#fixed");
     id_fixed.innerHTML = 9;
+}
+
+function isFullNumber(str) {
+    return !!str.match(/^[０-９]*$/);
+}
+
+function toHalfNumber(str) {
+    let num = "";
+    if (isFullNumber(str)) {
+        for (let i = 0; i < str.length; i++) {
+            num += String.fromCharCode(str[i].charCodeAt(0) - 0xFEE0);
+            console.log(str[i])
+            console.log(num)
+        }
+        return num;
+    } else {
+        return str;
+    }
 }
 
 function makeSalesList(make_num) {
@@ -81,8 +107,8 @@ function makeTable(sales_list, payment_list) {
         row_data_4.innerHTML = (sales_list[i] - payment_list[i]).toLocaleString();
 
         if (i == 6 || i == 12) {
-            row.classList.add("bg-warning");
-            row_data_4.style.color = BLUE_COLOR;
+            row.style.backgroundColor = "rgb(253, 242, 208)";
+            row_data_4.style.color = (sales_list[i] - payment_list[i]) > 0 ? BLUE_COLOR : RED_COLOR;
             row_data_4.style.fontWeight = "bold";
         }
         row.appendChild(row_data_1);
